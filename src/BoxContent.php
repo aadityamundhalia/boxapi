@@ -252,12 +252,35 @@ trait BoxContent {
     {
 
         $url = $this->api_url . "/search?query=$query&type=$type&scope=$scope&limit=$limit";
-        return $this->get($url, $json);
+        return $this->getCurl($url, $json);
     }
 
 
 	// ================================= Helper Methods ==================================
-
+	
+	protected function getCurl($url, $json = false)
+	{
+		$headers = $this->auth_header_php;
+		$curl = curl_init();
+		// Set some options - we are passing in a useragent too here
+		curl_setopt_array($curl, array(
+		    CURLOPT_URL => $url,
+		    CURLOPT_RETURNTRANSFER => true,
+		    CURLOPT_ENCODING => "",
+		    CURLOPT_MAXREDIRS => 10,
+		    CURLOPT_TIMEOUT => 30,
+		    CURLOPT_HTTPHEADER => array($this->auth_header_php),
+		));
+        	$data = curl_exec($curl);
+        	//$err = curl_error($curl);
+		curl_close($curl);
+		if ($json) {
+			return $data;
+		} else {
+			return json_decode($data, true);
+		}
+	}
+	
 	protected function get($url, $json = false, $data = '') {
 		$data = shell_exec("curl $url $this->auth_header $data");
 		if ($json) {
